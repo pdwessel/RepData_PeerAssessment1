@@ -8,14 +8,73 @@ output:
 
 ## Loading and preprocessing the data
 
+The data is contained in a zip file, unzip it and read in the data.
 
+```{r}
+RawData <- read.csv(unz("activity.zip", "activity.csv"))
+```
+
+Now load all the required packages
+```{r}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+```
 
 ## What is mean total number of steps taken per day?
 
+Convert the date factors to a date variable
+```{r, echo = TRUE}
+RawData$date <- ymd(as.character(RawData$date))
+str(RawData) #Check that the data type was converted
+```
+
+Grab the data that we need to answer the question 'What is the mean total number of steps per day'. To accomplish this I group the data by day, and summed the number of steps each day. The result is stored in the variable *q2*.
+
+```{r, echo = TRUE}
+q2 <- RawData %>% group_by(day(date)) %>% summarize(steps = sum(steps, na.rm = TRUE))
+names(q2) <- c("Day", "Total_Steps")
+```
+
+A code chunk below plots a histogram of the number off total steps taken each day.
+ 
+ ```{r, echo = TRUE}
+ p2 <- ggplot(q2, aes(Total_Steps))
+ p2 <- p2 + geom_histogram() + labs(x = "Total Steps", title = "Histogram of Total Steps per Day")
+ print(p2)
+ dev.off()
+ ```
+
+The mean and median are calculated in the following code chuck
+
+```{r, echo=TRUE}
+print(paste("Mean Steps per day: ", mean(q2$Total_Steps)))
+print(paste("Median steps per day: ", median(q2$Total_Steps)))
+```
 
 
 ## What is the average daily activity pattern?
 
+To generate the daily average activity pattern, we will group by time interval for each day, then compute the average steps for each interval.
+
+```{r, echo = TRUE}
+q3 <- RawData %>% group_by(interval) %>% summarize(steps = mean(steps, na.rm = TRUE))
+```
+
+Now plot the data
+
+```{r, echo = TRUE}
+p3 <- ggplot(q3, aes(interval, steps))
+p3 <- p3 + geom_line() + labs(x = "Time interval (minutes)", y = "Mean Steps per day", title = 'Average Daily Activity Pattern')
+print(p3)
+dev.off()
+```
+
+Which interval has the maximum number of steps each day on average.
+
+```{r, echo = TRUE}
+print(paste("Interval with the max average steps: ", q3$interval[max(q3$steps)]))
+```
 
 
 ## Imputing missing values
